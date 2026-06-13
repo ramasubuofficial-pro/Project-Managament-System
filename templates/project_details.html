@@ -10,13 +10,13 @@
         <span class="text-slate-800 dark:text-white font-medium">Project #{{ project_id[:8] }}...</span>
     </div>
 
-    <div class="flex justify-between items-start">
+    <div class="flex flex-col lg:flex-row justify-between items-start gap-6 lg:gap-0">
         <div>
             <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2" id="project-title-header">Loading...</h1>
             <p class="text-slate-500 dark:text-slate-400 max-w-2xl" id="project-desc-header"></p>
 
             <!-- Project Meta Info -->
-            <div class="flex items-start gap-8 mt-6">
+            <div class="flex flex-col sm:flex-row items-start gap-6 sm:gap-8 mt-6">
                 <div>
                     <h4 class="text-xs font-bold text-slate-400 uppercase mb-1">Timeline</h4>
                     <div class="flex items-center text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex items-center space-x-3">
+        <div class="flex flex-wrap items-center gap-3">
             <button id="edit-project-btn" onclick="openEditProjectModal()"
                 class="hidden px-4 py-2 bg-slate-100 text-slate-700 dark:bg-navy-700 dark:text-slate-200 rounded-xl shadow-lg shadow-slate-200/30 hover:bg-slate-200 dark:hover:bg-navy-600 transition flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
