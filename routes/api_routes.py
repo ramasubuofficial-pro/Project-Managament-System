@@ -489,8 +489,8 @@ def get_all_tasks():
     try:
         query = supabase.table('tasks').select('*, project:projects(title), assignee:assigned_to(full_name, avatar_url)').order('created_at', desc=True).limit(50)
         
-        if role != 'Admin':
-             query = query.eq('assigned_to', user_id)
+        # Always filter by assignee for the 'My Tasks' view, regardless of role
+        query = query.eq('assigned_to', user_id)
              
         res = query.execute()
         return jsonify(res.data)
