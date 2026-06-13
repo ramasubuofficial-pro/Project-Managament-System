@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ACCIO HUB PM{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Row: Projects & Tasks Chart -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Projects Section (Glass) -->
+        <div class="glass-panel p-6 rounded-3xl flex flex-col h-[400px]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Projects</h3>
+                <a href="{{ url_for('views.projects') }}"
+                    class="text-xs font-semibold text-navy-600 hover:text-navy-700">View All</a>
+            </div>
+            <div class="overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-slate-200"
+                id="dash-projects-list">
+                <!-- Projects injected here -->
+                <div class="text-center text-slate-400 py-10">Loading projects...</div>
+            </div>
+        </div>
+
+        <!-- Tasks Status Chart (Glass) -->
+        <div class="glass-panel p-6 rounded-3xl flex flex-col items-center justify-center h-[400px]">
+            <div class="w-full flex justify-between items-center mb-2 px-2">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Tasks</h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">By Status</span>
+            </div>
+            <div class="relative w-full h-full flex items-center justify-center">
+                <canvas id="tasksChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Work Log & Performance -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Work Log (Glass) -->
+        <div class="glass-panel p-6 rounded-3xl h-[400px] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Work Log</h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Tasks via Project</span>
+            </div>
+            <div class="flex-1 w-full flex items-center justify-center relative">
+                <canvas id="workLogChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Performance (Glass) -->
+        <div class="glass-panel p-6 rounded-3xl h-[400px] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Performance</h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Tasks Created (7 Days)</span>
+            </div>
+            <div class="flex-1 w-full relative">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Admin Insights (Only for Admin) -->
+    {% if role == 'Admin' %}
+    <div class="space-y-6 pt-6 border-t border-slate-200 dark:border-navy-600/60 dark:border-navy-800/50">
+        <div class="flex items-center space-x-2">
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Team Insights</h2>
+            <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 text-xs font-bold">ADMIN VIEW</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Individual Performance (Bar Chart) -->
+            <div class="glass-panel p-6 rounded-3xl h-[400px] flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white">Individual Performance</h3>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Tasks Completed vs Total</span>
+                </div>
+                <div class="flex-1 w-full relative">
+                    <canvas id="teamMemberChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Project Progress (Horizontal Bar) -->
+            <div class="glass-panel p-6 rounded-3xl h-[400px] flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white">Project Progress</h3>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Completion Rate</span>
+                </div>
+                <div class="flex-1 w-full relative">
+                    <canvas id="projectProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    // Global Chart instances
+    let charts = {};
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+        try {
+            // Load Stats & Chart Data
+            const statsRes = await fetch('/api/stats');
+            const statsData = await statsRes.json();
+
+            if (!statsData.error) {
+                renderCharts(statsData.charts);
+                // Check for Admin Data which is at root of response for now based on API code
+                // Actually my API code put everything in the response root, but 'charts' key has standard charts.
+                // admin keys are 'member_stats' and 'project_performance' at root.
+                if (statsData.member_stats) {
+                    renderAdminCharts(statsData);
+                }
+            }
+
+            // Load Projects List
+            const projRes = await fetch('/api/projects');
+            const projData = await projRes.json();
+            renderProjects(projData);
+
+        } catch (e) {
+            console.error("Dashboard Load Error:", e);
+        }
+    }
+
+    function renderProjects(projects) {
+        const container = document.getElementById('dash-projects-list');
+        container.innerHTML = '';
+
+        if (!projects || projects.length === 0) {
+            container.innerHTML = '<div class="text-center text-slate-400 py-10">No active projects</div>';
+            return;
+        }
+
+        projects.forEach(p => {
+            const el = document.createElement('div');
+            // More subtle hover for glass
+            el.className = 'p-4 rounded-2xl bg-white/40 dark:bg-navy-800/60 hover:bg-white/60 dark:bg-navy-800/70 hover:shadow-sm border border-transparent transition cursor-pointer group flex items-center justify-between mb-2';
+            el.onclick = () => window.location.href = `/projects/${p.id}`;
+
+            el.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-navy-50 text-navy-600 flex items-center justify-center font-bold text-lg shadow-sm">
+                        ${p.title[0]}
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 dark:text-white group-hover:text-navy-600 transition">${p.title}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[150px]">${p.description || 'No description'}</p>
+                    </div>
+                </div>
+                 <span class="text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(p.status)}">
+                    ${p.status}
+                </span>
+             `;
+            container.appendChild(el);
+        });
+    }
+
+    function getStatusColor(status) {
+        if (status === 'Active') return 'bg-gold-100 text-gold-700';
+        if (status === 'Completed') return 'bg-navy-100 text-navy-700';
+        return 'bg-slate-200 text-slate-700 dark:text-slate-200';
+    }
+
+    function showNoData(canvasId, message) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        const padding = canvas.parentElement;
+        // Remove existing overlay if any
+        const existing = padding.querySelector('.no-data-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'no-data-overlay absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-sm z-10';
+        overlay.innerHTML = `
+            <svg class="w-8 h-8 mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            ${message}
+        `;
+        padding.appendChild(overlay);
+
+        // Also fade out canvas
+        canvas.style.opacity = '0.1';
+    }
+
+    function renderCharts(data) {
+        // Font setup
+        Chart.defaults.font.family = 'Outfit';
+        Chart.defaults.color = '#64748b';
+
+        // 1. Tasks Status
+        const totalTasks = data.status.data.reduce((a, b) => a + b, 0);
+        const ctx1 = document.getElementById('tasksChart').getContext('2d');
+
+        if (totalTasks === 0) {
+            showNoData('tasksChart', 'No tasks available');
+        } else {
+            charts.tasks = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: data.status.labels,
+                    datasets: [{
+                        data: data.status.data,
+                        backgroundColor: ['#cbd5e1', '#f59e0b', '#10b981'], // Slate, Amber, Emerald
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } }
+                    },
+                    cutout: '65%',
+                    layout: { padding: 10 }
+                }
+            });
+        }
+
+        // 2. Work Log (Projects)
+        const totalProjTasks = data.projects.data.reduce((a, b) => a + b, 0);
+        const ctx2 = document.getElementById('workLogChart').getContext('2d');
+
+        if (totalProjTasks === 0) {
+            showNoData('workLogChart', 'No project activity');
+        } else {
+            const colors = ['#059669', '#10b981', '#34d399', '#f59e0b', '#fbbf24'];
+            charts.workLog = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: data.projects.labels,
+                    datasets: [{
+                        data: data.projects.data,
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } }
+                    },
+                    cutout: '65%',
+                    layout: { padding: 10 }
+                }
+            });
+        }
+
+        // 3. Performance (Line)
+        const totalPerf = data.trend.data.reduce((a, b) => a + b, 0);
+        const ctx3 = document.getElementById('performanceChart').getContext('2d');
+
+        if (totalPerf === 0) {
+            // Optional: Show empty state or just flat line
+        }
+
+        // Gradient fill
+        const gradient = ctx3.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)'); // Emerald
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+        charts.performance = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: data.trend.labels,
+                datasets: [{
+                    label: 'New Tasks',
+                    data: data.trend.data,
+                    borderColor: '#10b981', // Emerald
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9', borderDash: [5, 5] }, ticks: { stepSize: 1, precision: 0 } },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function renderAdminCharts(data) {
+        // Safe check if elements exist (in case Jinja didn't render them but API sent data, though unlikely)
+        const ctxMember = document.getElementById('teamMemberChart');
+        const ctxProj = document.getElementById('projectProgressChart');
+
+        if (!ctxMember || !ctxProj) return;
+
+        // 1. Team/Individual Performance
+        // Stacked Bar: Completed vs Pending
+        const members = data.member_stats;
+        const labels = members.map(m => m.name);
+        const completed = members.map(m => m.completed);
+        const pending = members.map(m => m.pending);
+
+        if (!members || members.length === 0) {
+            showNoData('teamMemberChart', 'No individual performance data');
+        } else {
+            new Chart(ctxMember, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Completed',
+                            data: completed,
+                            backgroundColor: '#10b981', // Emerald
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Pending',
+                            data: pending,
+                            backgroundColor: '#cbd5e1', // Slate
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 1 } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', align: 'end' }
+                    }
+                }
+            });
+        }
+
+        // 2. Project Progress
+        const projects = data.project_performance;
+        const pLabels = projects.map(p => p.title);
+        const pProgress = projects.map(p => p.progress);
+
+        if (!projects || projects.length === 0) {
+            showNoData('projectProgressChart', 'No project progress data');
+        } else {
+            new Chart(ctxProj, {
+                type: 'bar',
+                indexAxis: 'y', // Horizontal
+                data: {
+                    labels: pLabels,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: pProgress,
+                        backgroundColor: pProgress.map(v => v >= 100 ? '#10b981' : (v > 50 ? '#f59e0b' : '#3b82f6')), // Green, Amber, Blue
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { max: 100, beginAtZero: true },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.parsed.x + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

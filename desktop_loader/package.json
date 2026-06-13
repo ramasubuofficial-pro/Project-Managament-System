@@ -1,0 +1,37 @@
+{
+    "name": "acciohub-pm-desktop",
+    "version": "1.0.0",
+    "productName": "Accio Hub PM",
+    "description": "Professional Desktop Client for Accio Hub Project Management",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder"
+    },
+    "author": "Antigravity",
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^28.0.0",
+        "electron-builder": "^24.9.1"
+    },
+    "build": {
+        "appId": "com.acciohub.pm",
+        "win": {
+            "target": "nsis",
+            "icon": "icon.png"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true
+        },
+        "files": [
+            "**/*"
+        ],
+        "directories": {
+            "buildResources": "assets"
+        }
+    }
+}

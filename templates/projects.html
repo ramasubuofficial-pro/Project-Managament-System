@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+
+{% block header_title %}Projects{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="relative max-w-sm w-full">
+        <svg class="absolute left-3 top-3 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input type="text" placeholder="Search projects..."
+            class="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-navy-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent transition shadow-sm">
+    </div>
+
+    <button onclick="openCreateProjectModal()"
+        class="flex items-center px-4 py-2 bg-navy-600 text-white rounded-xl hover:bg-navy-700 transition shadow-lg shadow-navy-500/30">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        New Project
+    </button>
+</div>
+
+<div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Projects populated via JS -->
+</div>
+
+<!-- Create Project Modal -->
+<div id="create-project-modal"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0"
+        id="create-modal-content">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-navy-700 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white">Create New Project</h3>
+            <button onclick="closeCreateProjectModal()" class="text-slate-400 hover:text-slate-600 dark:text-slate-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Project Title</label>
+                <input type="text" id="new-project-title"
+                    class="w-full px-4 py-2 border border-slate-200 dark:border-navy-600 rounded-lg focus:ring-2 focus:ring-navy-500 focus:outline-none"
+                    oninput="document.getElementById('proj-title-error').classList.add('hidden')">
+                <div id="proj-title-error" class="hidden text-red-500 text-xs mt-1">Title is required</div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Description</label>
+                <textarea id="new-project-desc" rows="3"
+                    class="w-full px-4 py-2 border border-slate-200 dark:border-navy-600 rounded-lg focus:ring-2 focus:ring-navy-500 focus:outline-none"
+                    oninput="document.getElementById('proj-desc-error').classList.add('hidden')"></textarea>
+                <div id="proj-desc-error" class="hidden text-red-500 text-xs mt-1">Description is required</div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="relative">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Start Date</label>
+                    <input type="text" id="new-project-start" placeholder="Select Start Date"
+                        class="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-navy-600 rounded-lg focus:ring-2 focus:ring-navy-500 focus:outline-none cursor-pointer"
+                        oninput="document.getElementById('proj-start-error').classList.add('hidden')">
+                    <svg class="absolute left-3 top-9 w-5 h-5 text-slate-400 pointer-events-none" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <div id="proj-start-error" class="hidden text-red-500 text-xs mt-1">Start Date is required</div>
+                </div>
+                <div class="relative">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">End Date</label>
+                    <input type="text" id="new-project-end" placeholder="Select End Date"
+                        class="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-navy-600 rounded-lg focus:ring-2 focus:ring-navy-500 focus:outline-none cursor-pointer"
+                        oninput="document.getElementById('proj-end-error').classList.add('hidden')">
+                    <svg class="absolute left-3 top-9 w-5 h-5 text-slate-400 pointer-events-none" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <div id="proj-end-error" class="hidden text-red-500 text-xs mt-1">End Date is required</div>
+                </div>
+            </div>
+
+            <!-- Team Selection -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Team Members</label>
+                <div id="team-select-container"
+                    class="max-h-40 overflow-y-auto border border-slate-200 dark:border-navy-600 rounded-lg p-2 space-y-1 bg-slate-50 dark:bg-navy-900"
+                    onclick="document.getElementById('proj-team-error').classList.add('hidden')">
+                    <p class="text-xs text-slate-400 text-center py-2">Loading team...</p>
+                </div>
+                <div id="proj-team-error" class="hidden text-red-500 text-xs mt-1">At least one member is required</div>
+            </div>
+        </div>
+        <div class="px-6 py-4 bg-slate-50 dark:bg-navy-900 flex justify-end space-x-3">
+            <button onclick="closeCreateProjectModal()"
+                class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 rounded-lg transition">Cancel</button>
+            <button onclick="createProject()"
+                class="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 shadow-lg shadow-navy-500/30 transition">Create
+                Project</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirm-modal"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-navy-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform transition-all scale-100"
+        id="confirm-modal-content">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-navy-100 mb-4"
+            id="confirm-icon-bg">
+            <svg class="h-6 w-6 text-navy-600" id="confirm-icon" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2" id="confirm-title">Confirm Action</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6" id="confirm-message">Are you sure you want to proceed?</p>
+        <div class="flex space-x-3 justify-center">
+            <button onclick="closeConfirmModal()"
+                class="px-4 py-2 bg-slate-100 dark:bg-navy-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 rounded-lg font-medium transition">Cancel</button>
+            <button onclick="executeConfirmedAction()"
+                class="px-4 py-2 bg-navy-600 text-white hover:bg-navy-700 rounded-lg font-medium shadow-lg shadow-navy-500/30 transition"
+                id="confirm-btn-action">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CURRENT_USER_ROLE = "{{ role }}";
+    let pendingAction = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProjects();
+        // Initialize Flatpickr for Projects
+        flatpickr("#new-project-start", {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            theme: "dark"
+        });
+        flatpickr("#new-project-end", {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            theme: "dark"
+        });
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-container')) {
+                document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
+            }
+        });
+    });
+
+    async function loadProjects() {
+        const res = await fetch('/api/projects');
+        const projects = await res.json();
+        const grid = document.getElementById('projects-grid');
+
+        grid.innerHTML = '';
+        projects.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'bg-white dark:bg-navy-800 rounded-2xl p-6 border border-slate-100 dark:border-navy-700 shadow-sm hover:shadow-md transition-all group relative cursor-pointer';
+            card.onclick = (e) => {
+                if (window.getSelection().toString().length > 0) return;
+                window.location.href = `/projects/${p.id}`;
+            };
+
+            // Generate Status Badge
+            const statusColors = {
+                'Active': 'bg-navy-50 text-navy-600 border-navy-100',
+                'Completed': 'bg-blue-50 text-blue-600 border-blue-100',
+                'Archived': 'bg-slate-50 dark:bg-navy-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-navy-600'
+            };
+            const sColor = statusColors[p.status] || statusColors['Active'];
+
+            // Admin Menu
+            const adminMenu = CURRENT_USER_ROLE === 'Admin' ? `
+                <div class="absolute top-4 right-4 dropdown-container z-20" onclick="event.stopPropagation()">
+                    <button onclick="toggleDropdown(event, '${p.id}')" class="p-1 rounded-full text-slate-300 hover:text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-navy-700 transition">
+                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                    </button>
+                    <div id="dropdown-${p.id}" class="hidden absolute right-0 mt-1 w-48 bg-white dark:bg-navy-800 rounded-xl shadow-xl border border-slate-100 dark:border-navy-700 py-1 overflow-hidden">
+                        ${p.status !== 'Completed' ? `
+                        <button onclick="updateStatus(event, '${p.id}', 'Completed')" class="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-navy-900 hover:text-navy-600 flex items-center transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Mark as Completed
+                        </button>` : `
+                        <button onclick="updateStatus(event, '${p.id}', 'Active')" class="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-navy-900 hover:text-blue-600 flex items-center transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Re-activate Project
+                        </button>`}
+                        <div class="border-t border-slate-100 dark:border-navy-700 my-1"></div>
+                        <button onclick="updateStatus(event, '${p.id}', 'DELETE')" class="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862A2 2 0 016.862 21L6 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Delete Project
+                        </button>
+                    </div>
+                </div>
+            ` : '';
+
+            card.innerHTML = `
+                ${adminMenu}
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-navy-500 to-teal-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-navy-500/30">
+                        ${p.title[0]}
+                    </div>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2 truncate pr-8">${p.title}</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 h-10">${p.description || 'No description provided.'}</p>
+                
+                <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+                    <span class="text-xs font-semibold px-2 py-1 rounded-full border ${sColor}">
+                        ${p.status}
+                    </span>
+                    <span class="text-xs text-slate-400">
+                        ${new Date(p.created_at).toLocaleDateString()}
+                    </span>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function toggleDropdown(e, id) {
+        e.stopPropagation();
+        // Close others
+        document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+            if (el.id !== `dropdown-${id}`) el.classList.add('hidden');
+        });
+        document.getElementById(`dropdown-${id}`).classList.toggle('hidden');
+    }
+
+    function updateStatus(e, id, status) {
+        e.stopPropagation();
+        toggleDropdown(e, id); // Close dropdown immediately
+
+        // Setup Modal
+        pendingAction = { id, status };
+
+        const title = document.getElementById('confirm-title');
+        const msg = document.getElementById('confirm-message');
+        const btn = document.getElementById('confirm-btn-action');
+        const iconBg = document.getElementById('confirm-icon-bg');
+        const icon = document.getElementById('confirm-icon');
+
+        if (status === 'Completed') {
+            title.innerText = 'Mark as Completed?';
+            msg.innerText = 'This will mark the project as finished and notify all members.';
+            btn.className = "px-4 py-2 bg-navy-600 text-white hover:bg-navy-700 rounded-lg font-medium shadow-lg shadow-navy-500/30 transition";
+            btn.innerText = "Confirm"; // Reset text
+            iconBg.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-navy-100 mb-4";
+            icon.className = "h-6 w-6 text-navy-600";
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />';
+        } else if (status === 'DELETE') {
+            title.innerText = 'Delete Project?';
+            msg.innerText = 'Are you sure you want to PERMANENTLY delete this project? All tasks, files, and data will be lost. This cannot be undone.';
+            btn.className = "px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium shadow-lg shadow-red-500/30 transition";
+            btn.innerText = "Delete Forever";
+            iconBg.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4";
+            icon.className = "h-6 w-6 text-red-600";
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862A2 2 0 016.862 21L6 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />';
+        } else {
+            title.innerText = 'Re-activate Project?';
+            msg.innerText = 'This will set the project status back to Active.';
+            btn.className = "px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium shadow-lg shadow-blue-500/30 transition";
+            btn.innerText = "Confirm";
+            iconBg.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4";
+            icon.className = "h-6 w-6 text-blue-600";
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />';
+        }
+
+        document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirm-modal').classList.add('hidden');
+        pendingAction = null;
+    }
+
+    async function executeConfirmedAction() {
+        if (!pendingAction) return;
+
+        const { id, status } = pendingAction;
+
+        // Show loading state on button
+        const btn = document.getElementById('confirm-btn-action');
+        const originalText = btn.innerText;
+        btn.innerText = 'Processing...';
+        btn.disabled = true;
+
+        try {
+            let res;
+            if (status === 'DELETE') {
+                res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+            } else {
+                res = await fetch(`/api/projects/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: status })
+                });
+            }
+
+            if (res.ok) {
+                showToast(`Project marked as ${status}`, 'success');
+                loadProjects();
+                closeConfirmModal();
+            } else {
+                const err = await res.json();
+                showToast(err.error || 'Failed to update status', 'error');
+                closeConfirmModal();
+            }
+        } catch (error) {
+            showToast('Network error', 'error');
+            closeConfirmModal();
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    async function loadTeamForSelect() {
+        const container = document.getElementById('team-select-container');
+        try {
+            const res = await fetch('/api/team');
+            if (!res.ok) throw new Error('Failed');
+            const team = await res.json();
+
+            if (team.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 text-center py-2">No team members found.</p>';
+                return;
+            }
+
+            container.innerHTML = team.map(user => `
+                <div class="flex items-center space-x-3 p-2 hover:bg-white dark:bg-navy-800 rounded transition cursor-pointer" onclick="this.querySelector('input').click()">
+                    <input type="checkbox" value="${user.id}" class="w-4 h-4 text-navy-600 rounded border-slate-300 focus:ring-navy-500 cursor-pointer" onclick="event.stopPropagation()">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300">
+                             ${(user.full_name || user.email)[0].toUpperCase()}
+                        </div>
+                        <span class="text-sm text-slate-700 dark:text-slate-200 font-medium">${user.full_name || user.email}</span>
+                        <span class="text-xs text-slate-400">(${user.role})</span>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (e) {
+            container.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Error loading team.</p>';
+        }
+    }
+
+    function openCreateProjectModal() {
+        const modal = document.getElementById('create-project-modal');
+        const content = document.getElementById('create-modal-content');
+
+        // Reset Fields
+        document.getElementById('new-project-title').value = '';
+        document.getElementById('new-project-desc').value = '';
+        document.getElementById('new-project-start').value = '';
+        document.getElementById('new-project-end').value = '';
+        // Note: Team checkboxes reset when re-rendered by loadTeamForSelect
+
+        // Hide Errors
+        ['proj-title-error', 'proj-desc-error', 'proj-start-error', 'proj-end-error', 'proj-team-error'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+
+        modal.classList.remove('hidden');
+
+        loadTeamForSelect(); // Load team members
+
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeCreateProjectModal() {
+        const modal = document.getElementById('create-project-modal');
+        const content = document.getElementById('create-modal-content');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    async function createProject() {
+        const title = document.getElementById('new-project-title').value;
+        const desc = document.getElementById('new-project-desc').value;
+        const start = document.getElementById('new-project-start').value;
+        const end = document.getElementById('new-project-end').value;
+
+        // Get selected members
+        const container = document.getElementById('team-select-container');
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+        const members = Array.from(checkboxes).map(cb => cb.value);
+
+        // Validate
+        let isValid = true;
+        if (!title.trim()) {
+            document.getElementById('proj-title-error').classList.remove('hidden');
+            isValid = false;
+        }
+        if (!desc.trim()) {
+            document.getElementById('proj-desc-error').classList.remove('hidden');
+            isValid = false;
+        }
+        if (!start) {
+            document.getElementById('proj-start-error').classList.remove('hidden');
+            isValid = false;
+        }
+        if (!end) {
+            document.getElementById('proj-end-error').classList.remove('hidden');
+            isValid = false;
+        }
+        if (members.length === 0) {
+            document.getElementById('proj-team-error').classList.remove('hidden');
+            isValid = false;
+        }
+
+        if (!isValid) return;
+
+        const res = await fetch('/api/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title,
+                description: desc,
+                start_date: start,
+                end_date: end,
+                members: members
+            })
+        });
+
+        if (res.ok) {
+            closeCreateProjectModal();
+            loadProjects();
+            // Fields are reset on next open
+        } else {
+            const err = await res.json();
+            showToast('Error creating project: ' + (err.error || 'Unknown error'), "error");
+        }
+    }
+</script>
+{% endblock %}

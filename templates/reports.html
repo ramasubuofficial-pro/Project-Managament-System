@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block header_title %}Reports{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Chart Section Placeholder -->
+    <div class="bg-white dark:bg-navy-800 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-navy-700">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-navy-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+            </svg>
+            Task Distribution
+        </h2>
+        <div class="h-64 flex items-end space-x-4">
+            <!-- Simple CSS Bar Chart -->
+            <div class="w-full flex justify-around items-end h-full px-4 border-b border-slate-200 dark:border-navy-600 pb-4">
+                <div id="bar-todo" class="w-20 bg-slate-200 dark:bg-slate-700 rounded-t-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition relative group"
+                    style="height: 5%">
+                    <div id="label-todo"
+                        class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 dark:bg-slate-200 dark:text-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+                        0%</div>
+                    <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                        To Do</div>
+                </div>
+                <div id="bar-progress" class="w-20 bg-gold-100 dark:bg-gold-900/50 rounded-t-xl hover:bg-gold-200 dark:hover:bg-gold-800/50 transition relative group"
+                    style="height: 5%">
+                    <div id="label-progress"
+                        class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 dark:bg-slate-200 dark:text-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+                        0%</div>
+                    <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs font-bold text-gold-800 dark:text-gold-400">
+                        Progress</div>
+                </div>
+                <div id="bar-done" class="w-20 bg-emerald-100 dark:bg-emerald-900/50 rounded-t-xl hover:bg-emerald-200 dark:hover:bg-emerald-800/50 transition relative group"
+                    style="height: 5%">
+                    <div id="label-done"
+                        class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 dark:bg-slate-200 dark:text-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+                        0%</div>
+                    <div
+                        class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs font-bold text-emerald-800 dark:text-emerald-400">
+                        Done</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 print:hidden">
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
+            <h3 class="font-bold text-lg mb-2">Export Data</h3>
+            <p class="text-slate-400 text-sm mb-6">Download project metrics and task logs for external analysis.</p>
+            <div class="flex space-x-3">
+                <button onclick="window.location.href='/api/export/csv'"
+                    class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    Export CSV
+                </button>
+                <button onclick="window.print()"
+                    class="px-4 py-2 bg-navy-600 hover:bg-navy-700 rounded-lg text-sm font-medium transition flex items-center shadow-lg shadow-navy-500/30">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    Generate PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-navy-800 rounded-2xl p-6 border border-slate-100 dark:border-navy-700 shadow-sm">
+            <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-2">System Health</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-500 dark:text-slate-400">API Latency</span>
+                        <span class="text-navy-600 font-bold">45ms</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-100 dark:bg-navy-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-navy-500 w-[15%]"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-500 dark:text-slate-400">Database Load</span>
+                        <span class="text-gold-600 font-bold">12%</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-100 dark:bg-navy-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-gold-500 w-[12%]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Attendance Section -->
+{% if session.get('user', {}).get('role') == 'Admin' %}
+<div class="bg-white dark:bg-navy-800 rounded-2xl p-6 border border-slate-100 dark:border-navy-700 shadow-sm mt-8">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="font-bold text-lg text-slate-800 dark:text-white">Team Attendance Log</h3>
+
+        <div class="flex items-center space-x-3">
+            <a id="admin-export-btn" href="/api/admin/export/attendance"
+                class="text-navy-600 hover:text-navy-800 text-sm font-medium flex items-center bg-navy-50 px-3 py-1.5 rounded-lg border border-navy-100 hover:bg-navy-100 transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Download Report
+            </a>
+            <select id="admin-user-filter" onchange="loadAdminAttendance()"
+                class="px-3 py-1.5 border border-slate-200 dark:border-navy-600 rounded-lg text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-navy-500">
+                <option value="">All Members</option>
+                <!-- Populated via JS -->
+            </select>
+            <button onclick="loadAdminAttendance()"
+                class="text-navy-600 hover:text-navy-800 text-sm font-medium">Refresh</button>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr>
+                    <th class="p-3 text-sm font-semibold text-slate-500 dark:text-slate-400 border-b">Member</th>
+                    <th class="p-3 text-sm font-semibold text-slate-500 dark:text-slate-400 border-b">Date</th>
+                    <th class="p-3 text-sm font-semibold text-slate-500 dark:text-slate-400 border-b">In</th>
+                    <th class="p-3 text-sm font-semibold text-slate-500 dark:text-slate-400 border-b">Out</th>
+                    <th class="p-3 text-sm font-semibold text-slate-500 dark:text-slate-400 border-b">Status</th>
+                </tr>
+            </thead>
+            <tbody id="admin-att-body">
+                <tr>
+                    <td colspan="5" class="p-4 text-center text-slate-400">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+</div>
+
+<style>
+    @media print {
+
+        aside,
+        header,
+        .print\:hidden {
+            display: none !important;
+        }
+
+        main {
+            overflow: visible !important;
+            height: auto !important;
+        }
+
+        body {
+            background: white;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Fetch real stats to power the chart
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+
+        if (!data.error) {
+            const total = data.total_tasks || 1; // avoid divide by zero
+            const stats = data.task_stats;
+
+            // Update chart bars
+            updateBar('todo', stats.todo, total, 'slate');
+            updateBar('progress', stats.inprogress, total, 'amber');
+            updateBar('done', stats.completed, total, 'emerald');
+        }
+    });
+
+    function updateBar(type, count, total, color) {
+        const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+        const bar = document.getElementById('bar-' + type);
+        const label = document.getElementById('label-' + type);
+        if (bar && label) {
+            // Minimum height of 5% so the bar doesn't completely vanish when 0
+            bar.style.height = Math.max(percentage, 5) + '%';
+            label.innerText = count + ' (' + percentage + '%)';
+        }
+    }
+
+    // ...
+</script>
+
+{% if session.get('user', {}).get('role') == 'Admin' %}
+<script>
+    // ... (populateUserFilter same) ...
+
+    async function populateUserFilter() {
+        const select = document.getElementById('admin-user-filter');
+        try {
+            const res = await fetch('/api/admin/users');
+            if (!res.ok) return;
+            const users = await res.json();
+            select.innerHTML = '<option value="">All Members</option>'; // Reset
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.innerText = u.full_name || u.email;
+                select.appendChild(opt);
+            });
+        } catch (e) { console.error("Error loading users", e); }
+    }
+
+
+    async function loadAdminAttendance() {
+        const tbody = document.getElementById('admin-att-body');
+        const filterEl = document.getElementById('admin-user-filter');
+        const userId = filterEl ? filterEl.value : '';
+
+        // Update Export Link
+        const exportBtn = document.getElementById('admin-export-btn');
+        if (exportBtn) {
+            exportBtn.href = userId
+                ? `/api/admin/export/attendance?user_id=${userId}`
+                : `/api/admin/export/attendance`;
+        }
+
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Loading records...</td></tr>';
+
+        try {
+            let url = '/api/admin/attendance-history';
+            if (userId) {
+                url += `?user_id=${userId}`;
+            }
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Failed to fetch");
+            const data = await res.json();
+
+            tbody.innerHTML = '';
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No records found.</td></tr>';
+                return;
+            }
+
+            data.forEach(row => {
+                const date = new Date(row.date).toLocaleDateString();
+                const inTime = row.punch_in ? new Date(row.punch_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+                const outTime = row.punch_out ? new Date(row.punch_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+
+                const tr = `
+                    <tr class="hover:bg-slate-50 dark:bg-navy-900 border-b border-slate-100 dark:border-navy-700 last:border-0 text-sm">
+                        <td class="p-3 font-medium text-slate-700 dark:text-slate-200">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-full bg-navy-100 flex items-center justify-center text-navy-600 font-bold text-xs">
+                                    ${row.user_name ? row.user_name.charAt(0).toUpperCase() : '?'}
+                                </div>
+                                <span>${row.user_name || 'Unknown'}</span>
+                            </div>
+                        </td>
+                        <td class="p-3 text-slate-600 dark:text-slate-300">${date}</td>
+                        <td class="p-3 text-slate-600 dark:text-slate-300">${inTime} <div class="text-xs text-slate-400 max-w-[150px] truncate" title="${row.location || ''}">${row.location || ''}</div></td>
+                        <td class="p-3 text-slate-600 dark:text-slate-300">${outTime} <div class="text-xs text-slate-400 max-w-[150px] truncate" title="${row.punch_out_location || ''}">${row.punch_out_location || ''}</div></td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold ${row.status === 'Present' ? 'bg-navy-100 text-navy-700' : 'bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-300'}">
+                                ${row.status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', tr);
+            });
+
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Error loading data</td></tr>';
+        }
+    }
+
+    // Init Admin Logic
+    populateUserFilter();
+    loadAdminAttendance();
+</script>
+{% endif %}
+{% endblock %}

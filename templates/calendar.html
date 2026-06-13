@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar - ACCIO HUB PM{% endblock %}
+{% block header_title %}Schedule{% endblock %}
+
+{% block head %}
+<!-- FullCalendar CSS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<style>
+    /* 
+       Creative Glass Theme V2
+       Cleaner, faster, more vibrant.
+    */
+    :root {
+        --fc-border-color: rgba(226, 232, 240, 0.4);
+        --fc-page-bg-color: transparent;
+        --fc-neutral-bg-color: rgba(255, 255, 255, 0.3);
+        --fc-list-event-hover-bg-color: rgba(241, 245, 249, 0.8);
+        --fc-today-bg-color: rgba(16, 185, 129, 0.05) !important;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Main Container */
+    .creative-calendar-wrapper {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 32px;
+        box-shadow:
+            0 20px 50px -12px rgba(0, 0, 0, 0.05),
+            0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        padding: 2rem;
+        color: #1e293b;
+        position: relative;
+        overflow: hidden;
+        animation: fadeIn 0.6s ease-out;
+    }
+    .dark .creative-calendar-wrapper {
+        background: rgba(10, 17, 40, 0.45);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #f8fafc;
+        box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Decorative Background Gradients */
+    .creative-calendar-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -150px;
+        left: -150px;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .creative-calendar-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        right: -150px;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Toolbar Title */
+    .fc .fc-toolbar-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.5rem !important;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+        z-index: 10;
+    }
+    .dark .fc .fc-toolbar-title {
+        background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Toolbar Buttons */
+    .fc .fc-button-primary {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: capitalize;
+        border-radius: 12px;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+    .dark .fc .fc-button-primary {
+        background: #1e293b;
+        border-color: #334155;
+        color: #cbd5e1;
+    }
+
+    .fc .fc-button-primary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #059669;
+        /* Emerald */
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    .dark .fc .fc-button-primary:hover {
+        background: #334155;
+        border-color: #475569;
+        color: #34d399;
+    }
+
+    .fc .fc-button-primary:not(:disabled).fc-button-active,
+    .fc .fc-button-primary:not(:disabled):active {
+        background: #059669;
+        border-color: #059669;
+        color: white;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+    .dark .fc .fc-button-primary:not(:disabled).fc-button-active,
+    .dark .fc .fc-button-primary:not(:disabled):active {
+        background: #059669;
+        border-color: #059669;
+        color: white;
+    }
+
+    .fc .fc-button-group>.fc-button {
+        margin: 0 2px;
+        border-radius: 12px !important;
+        /* Force separate buttons */
+    }
+
+    /* Header Cells */
+    .fc-col-header-cell-cushion {
+        color: #64748b;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        padding: 10px 0;
+    }
+    .dark .fc-col-header-cell-cushion {
+        color: #94a3b8;
+    }
+
+    /* Grid Lines - make them thinner/lighter */
+    .fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: rgba(226, 232, 240, 0.6);
+    }
+    .dark .fc-theme-standard td,
+    .dark .fc-theme-standard th {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Day Number */
+    .fc-daygrid-day-number {
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin: 4px;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .dark .fc-daygrid-day-number {
+        color: #f1f5f9;
+    }
+
+    /* Today Highlight */
+    .fc-day-today .fc-daygrid-day-number {
+        background: #059669;
+        color: white;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
+    }
+
+    /* Events */
+    .fc-event {
+        border: none;
+        border-radius: 8px;
+        padding: 3px 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .fc-event:hover {
+        transform: scale(1.02);
+        z-index: 50;
+    }
+
+    .fc-event-main {
+        padding: 2px 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Remove Scrollbars if possible */
+    .fc-scroller::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+
+    .fc-scroller::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col p-2 space-y-4">
+
+    <!-- Legend / Quick Stats -->
+    <div class="flex items-center justify-between px-4 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div class="flex space-x-6 text-sm">
+            <div class="flex items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-navy-500 mr-2 shadow-sm shadow-navy-500/50"></span>
+                <span class="text-slate-600 dark:text-slate-300 font-medium">Normal</span>
+            </div>
+            <div class="flex items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-gold-500 mr-2 shadow-sm shadow-gold-500/50"></span>
+                <span class="text-slate-600 dark:text-slate-300 font-medium">Medium</span>
+            </div>
+            <div class="flex items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 mr-2 shadow-sm shadow-red-500/50"></span>
+                <span class="text-slate-600 dark:text-slate-300 font-medium">High Priority</span>
+            </div>
+        </div>
+        <div class="hidden md:block text-xs text-slate-400">
+            Syncs automatically with your Tasks
+        </div>
+    </div>
+
+    <!-- Creative Wrapper -->
+    <div class="creative-calendar-wrapper flex-1 flex flex-col min-h-[600px] relative z-0">
+        <!-- Calendar Container -->
+        <div id='calendar' class="flex-1 relative z-10 w-full"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            themeSystem: 'standard',
+            headerToolbar: {
+                left: 'title',
+                center: '',
+                right: 'prev,today,next dayGridMonth,timeGridWeek'
+            },
+            height: '100%',
+            contentHeight: 'auto',
+            editable: false,
+            droppable: false,
+            dayMaxEvents: 3,
+            events: '/api/calendar/events', // Now supports date range via backend
+            navLinks: true,
+            nowIndicator: true,
+
+            eventClick: function (info) {
+                if (info.event.url) {
+                    window.location.href = info.event.url;
+                    info.jsEvent.preventDefault();
+                }
+            },
+
+            loading: function (isLoading) {
+                if (isLoading) {
+                    // Optional: Show spinner
+                }
+            },
+
+            eventDidMount: function (info) {
+                // Tooltip
+                if (info.event.extendedProps.description) {
+                    info.el.title = info.event.extendedProps.description;
+                }
+
+                // Custom Gradients based on updated backend props
+                // If backend colors fail or we want client-side overrides:
+                const p = info.event.extendedProps.priority;
+                const status = info.event.extendedProps.status;
+
+                let bg = info.event.backgroundColor; // Default from backend
+
+                // Refine gradients if single color sent
+                if (p === 'High') {
+                    info.el.style.background = 'linear-gradient(135deg, #ef4444, #f87171)';
+                    info.el.style.boxShadow = '0 4px 10px rgba(239, 68, 68, 0.2)';
+                } else if (p === 'Medium') {
+                    info.el.style.background = 'linear-gradient(135deg, #f59e0b, #fbbf24)';
+                    info.el.style.boxShadow = '0 4px 10px rgba(245, 158, 11, 0.2)';
+                } else if (status === 'Completed') {
+                    info.el.style.background = 'linear-gradient(135deg, #059669, #34d399)';
+                    info.el.style.opacity = '0.8';
+                } else {
+                    info.el.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+                    info.el.style.boxShadow = '0 4px 10px rgba(16, 185, 129, 0.2)';
+                }
+
+                // Shine Effect
+                const shine = document.createElement('div');
+                shine.className = 'absolute inset-0 bg-white/10 pointer-events-none rounded-lg';
+                shine.style.clipPath = 'polygon(0 0, 100% 0, 100% 40%, 0 100%)';
+                info.el.appendChild(shine);
+            }
+        });
+
+        calendar.render();
+    });
+</script>
+{% endblock %}

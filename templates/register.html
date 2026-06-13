@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - ACCIO HUB PM{% endblock %}
+
+{% block content %}
+<div class="fixed inset-0 flex items-center justify-center bg-slate-50 dark:bg-navy-900 z-[1001]">
+    <!-- Higher z-index to cover sidebar -->
+    <div class="w-full max-w-md p-8 bg-white dark:bg-navy-800 rounded-2xl shadow-xl border border-slate-100 dark:border-navy-700 relative">
+        <div class="text-center mb-8">
+            <h1
+                class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-navy-600 to-gold-500 mb-2">
+                ACCIO HUB</h1>
+            <p class="text-slate-500 dark:text-slate-400">Join the Project Management Revolution</p>
+        </div>
+
+        <div class="space-y-4">
+            <!-- Email/Pass Form -->
+            <div id="email-form" class="space-y-3">
+                <input type="text" id="fullname" placeholder="Full Name (optional)"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 outline-none">
+                <input type="email" id="email" placeholder="Email address"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 outline-none">
+                <div class="relative">
+                    <input type="password" id="password" placeholder="Create Password"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 outline-none pr-12">
+                    <button type="button" onclick="togglePassword('password')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy-600 dark:hover:text-gold-500">
+                        <svg id="eye-password" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+                    </button>
+                </div>
+                <button onclick="signUpWithEmail()"
+                    class="w-full px-4 py-3 bg-navy-600 hover:bg-navy-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-navy-500/30">
+                    Sign Up
+                </button>
+            </div>
+        </div>
+
+        <p class="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            Already have an account? <a href="/auth/login" class="text-navy-600 hover:text-navy-800 dark:text-gold-500 font-medium">Log in here</a>
+        </p>
+
+        <p class="mt-4 text-center text-xs text-slate-400">
+            By registering, you agree to our Terms of Service and Privacy Policy.
+        </p>
+    </div>
+</div>
+
+<script>
+    // The supabase client is initialized in base.html as 'supabaseClient'
+
+    // Handle Access Token (from Email Confirmation or Magic Link)
+    window.onload = async function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('force_logout') === '1') {
+            await supabaseClient.auth.signOut();
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // If there's a hash, let Supabase parse it
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+        if (session) {
+            handleSession(session);
+        }
+
+        // Listen for auth changes (like redirect result)
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                handleSession(session);
+            }
+        });
+    };
+
+    async function handleSession(session) {
+        // Post to server to set python session
+        try {
+            const res = await fetch('/auth/api/set-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    access_token: session.access_token,
+                    user: session.user
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                window.location.href = "{{ url_for('views.dashboard') }}";
+            } else {
+                console.error("Session sync failed:", data.error);
+                showToast(data.error || "Registration rejected by server.", "error");
+                await supabaseClient.auth.signOut();
+                resetUI();
+            }
+        } catch (e) {
+            console.error(e);
+            showToast("Network error during signup", "error");
+            resetUI();
+        }
+    }
+
+    function resetUI() {
+        const btn = document.querySelector('button[onclick="signUpWithEmail()"]');
+        if (btn) {
+            btn.innerText = "Sign Up";
+            btn.disabled = false;
+        }
+    }
+
+    async function signUpWithEmail() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const fullname = document.getElementById('fullname').value;
+        const btn = event.target;
+
+        if (!email || !password) {
+            showToast("Please enter an email and password", "error");
+            return;
+        }
+
+        btn.innerText = "Creating account...";
+        btn.disabled = true;
+
+        try {
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: fullname
+                    }
+                }
+            });
+
+            if (error) throw error;
+            
+            // If email confirmation is required, Supabase returns user but no session
+            if (data.user && !data.session) {
+                showToast("Account created! Please check your email to verify.", "success");
+                btn.innerText = "Sign Up";
+                btn.disabled = false;
+            }
+
+            // If auto-login, onAuthStateChange will handle it
+
+        } catch (error) {
+            showToast(error.message || "Signup failed", "error");
+            resetUI();
+        }
+    }
+
+    async function signInWithGoogle() {
+        try {
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/auth/callback'
+                }
+            })
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error logging in:', error);
+            showToast('Error logging in: ' + (error.message || JSON.stringify(error)), "error");
+        }
+    }
+
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById('eye-' + inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />';
+        } else {
+            input.type = "password";
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />';
+        }
+    }
+</script>
+{% endblock %}

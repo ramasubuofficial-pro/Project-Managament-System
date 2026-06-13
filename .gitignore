@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+desktop_loader/node_modules/
+.venv/
+.pytest_cache/
